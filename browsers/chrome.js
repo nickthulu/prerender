@@ -1,6 +1,6 @@
 const CDP = require('chrome-remote-interface');
 const { spawn } = require('child_process');
-const util = require('../util.js');
+const util = require('../lib/util.js');
 const fs = require('fs');
 const os = require('os');
 const url = require('url');
@@ -291,7 +291,7 @@ chrome.setUpEvents = function(tab) {
 					tab.prerender.numRequestsInFlight--;
 					tab.prerender.lastRequestReceivedAt = new Date().getTime();
 
-					if (tab.prerender.logRequests || this.options.logRequests) util.log('-', tab.prerender.numRequestsInFlight, tab.prerender.requests[params.requestId]);
+					if (tab.prerender.logRequests || this.options.logRequests) util.log('-', tab.prerender.numRequestsInFlight, params.response.status, tab.prerender.requests[params.requestId]);
 					delete tab.prerender.requests[params.requestId];
 
 					let entry = tab.prerender.pageLoadInfo.entries[params.requestId];
