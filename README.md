@@ -1,31 +1,33 @@
 Prerender [![Stories in Ready](https://badge.waffle.io/prerender/prerender.png?label=ready&title=Ready)](https://waffle.io/prerender/prerender)
 ===========================
 
-Prerender is a node server that uses Headless Chrome to render HTML, screenshots, PDFs, and HAR files out of any web page. The Prerender server listens for an http request, takes the URL and loads it in Headless Chrome, waits for the page to finish loading by waiting for the network to be idle, and then returns your content.
+Prerender is an Express route that uses Headless Chrome to render HTML, screenshots, PDFs, and HAR files out of any web page. The Prerender route takes the URL and loads it in Headless Chrome(ium), waits for the page to finish loading by waiting for the network to be idle, and then returns your content.
 
 Looking for our PhantomJS Prerender server? [Go to our phantomjs branch](https://github.com/prerender/prerender/tree/phantomjs)
 
 ##### The quickest way to run your own prerender server:
 
 ```bash
-$ npm install prerender
+$ npm install prerender express
 ```
 ##### server.js
 ```js
-const prerender = require('prerender');
-const server = prerender();
-server.start();
+const app = require('express')()
+const prerender = require('prerender')().start()
+app.any('*', prerender.onRequest)
+app.listen(3000, () => console.log(`Server accepting requests on port ${port}`))
 ```
 ##### test it:
 ```bash
-curl http://localhost:3000/render?url=https://www.example.com/
+curl http://localhost:3000/?url=https://www.example.com/
 ```
+
+See the [server.js](./server.js) file for an example of a more complete server with a health dashboard at /status using [express-status-monitor](https://www.npmjs.com/package/express-status-monitor).
 
 ## Use Cases
 The Prerender server can be used in conjunction with [our Prerender.io middleware](#middleware) in order to serve the prerendered HTML of your javascript website to search engines (Google, Bing, etc) and social networks (Facebook, Twitter, etc) for SEO. We run the Prerender server at scale for SEO needs at [https://prerender.io/](https://prerender.io/).
 
 The Prerender server can be used on its own to crawl any web page and pull down the content for your own parsing needs. We host the Prerender server for your own crawling needs at [https://prerender.com/](https://prerender.com/).
-
 
 Prerender differs from Google Puppeteer in that Prerender is a web server that takes in URLs and loads them in parallel in a new tab in Headless Chrome. Puppeteer is an API for interacting with Chrome, but you still have to write that interaction yourself. With Prerender, you don't have to write any code to launch Chrome, load pages, wait for the page to load, or pull the content off of the page. The Prerender server handles all of that for you so you can focus on more important things!
 
