@@ -115,8 +115,6 @@ chrome.openTab = function(options) {
 
 			return browser.Target.createTarget({
 				url: 'about:blank',
-				width: options.width || 1440,
-				height: options.height || 718,
 				browserContext
 			});
 		}).then(({ targetId }) => {
@@ -149,10 +147,7 @@ chrome.closeTab = function(tab) {
 		.then(() => {
 
 			return tab.browser.Target.disposeBrowserContext({ browserContextId: tab.browserContextId });
-		}).then((resp) => {
-			if(!resp.success) {
-				return reject('unable to dispose of browser context');
-			}
+		}).then(() => {
 
 			return tab.browser.close();
 		}).then(() => {
@@ -363,7 +358,8 @@ chrome.loadUrlThenWaitForPageLoadEvent = function(tab, url) {
 
 		var finished = false;
 		const {
-			Page
+			Page,
+			Emulation
 		} = tab;
 
 
@@ -418,6 +414,18 @@ chrome.loadUrlThenWaitForPageLoadEvent = function(tab, url) {
 			Page.addScriptToEvaluateOnNewDocument({source: 'if (window.customElements) customElements.forcePolyfill = true'})
 			Page.addScriptToEvaluateOnNewDocument({source: 'ShadyDOM = {force: true}'})
 			Page.addScriptToEvaluateOnNewDocument({source: 'ShadyCSS = {shimcssproperties: true}'})
+
+			let width = parseInt(tab.prerender.width, 10) || 1440;
+			let height = parseInt(tab.prerender.height, 10) || 718;
+
+			Emulation.setDeviceMetricsOverride({
+				width: width,
+				screenWidth: width,
+				height: height,
+				screenHeight: height,
+				deviceScaleFactor: 0,
+				mobile: false
+			});
 
 			Page.navigate({
 				url: tab.prerender.url

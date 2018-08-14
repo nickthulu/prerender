@@ -40,15 +40,33 @@ const defaultOptions = {
 
 module.exports = (options = {}) => {
 	const opts = Object.assign({}, defaultOptions, options)
+	const blockedResources = opts.blockedResources.concat(opts.appendBlockedResources)
 
 	return {
 		tabCreated: (req, res, next) => {
-			req.prerender.tab.Network.setBlockedURLs({
-				urls: opts.blockedResources.concat(opts.appendBlockedResources)
+			req.prerender.tab.Network.setRequestInterception({
+				patterns: [{urlPattern: '*'}]
 			}).then(() => {
 				next();
-			}).catch(() => {
-				res.send(504);
+			});
+
+			req.prerender.tab.Network.requestIntercepted(({interceptionId, request}) => {
+
+				let shouldBlock = false;
+				blockedResources.forEach((substring) => {
+					if (request.url.indexOf(substring) >= 0) {
+						shouldBlock = true;
+					}
+				});
+
+				let interceptOptions = {interceptionId};
+
+				if (shouldBlock) {
+					interceptOptions.errorReason = 'Aborted';
+				}
+
+				req.prerender.tab.Network.continueInterceptedRequest(interceptOptions);
+
 			});
 		}
 	}
