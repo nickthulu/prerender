@@ -1,13 +1,20 @@
 {
   "author": "Prerender.io",
-  "name": "prerender",
-  "description": "Service to prerender Javascript rendered pages for SEO",
+  "name": "prerender-express-fork",
+  "description": "Service to prerender Javascript rendered pages for SEO, as an Express middleware",
   "version": "5.4.2",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/prerender/prerender"
+    "url": "https://github.com/tprobinson/prerender.git"
   },
+  "keywords": [
+    "prerender", "seo", "dynamic", "pages", "render",
+    "react", "react.js", "ember", "ember.js", "angular", "angular.js",
+    "vue", "vue.js",
+    "express", "middleware", "plugins", "plugin",
+    "fork"
+  ],
   "dependencies": {
     "body-parser": "~1.18.2",
     "chrome-remote-interface": "~0.24.2",

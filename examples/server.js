@@ -3,11 +3,35 @@ const app = require('express')()
 const bodyParser = require('body-parser')
 const compression = require('compression')
 const status = require('express-status-monitor')
+
+const cacheManager = require('cache-manager')
+const S3Cache = require('cache-manager-s3')
+const PrerenderCacheManagerGlue = require('prerender-cache-manager-glue')
+
 const port = 3000
 
 app.disable('x-powered-by')
 app.use(compression())
 app.use(status())
+
+let cachePlugin
+if( !('S3_ACCESS_KEY' in process.env) || !process.env.S3_ACCESS_KEY ) {
+	cachePlugin = require('prerender-memory-cache')
+	console.log('No S3 key detected, using memory cache')
+} else {
+	cachePlugin = new S3Cache({
+		accessKey: process.env.S3_ACCESS_KEY,
+		secretKey: process.env.S3_SECRET_KEY,
+		bucket: process.env.S3_BUCKET,
+	})
+}
+
+const prerenderCache = new PrerenderCacheManagerGlue(
+	cacheManager.caching({
+		store: cachePlugin,
+		ttl: 3600,
+	})
+)
 
 // Prerenderer
 const prerender = require('prerender')({
@@ -27,7 +51,7 @@ const prerender = require('prerender')({
 		require('prerender/plugins/removeScriptTags'),
 		require('prerender/plugins/httpHeaders'),
 		require('prerender/plugins/blockResources')(),
-		require('prerender-memory-cache'),
+		prerenderCache,
 	]
 }).start()
 
