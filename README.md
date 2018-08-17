@@ -27,6 +27,16 @@ See the [examples/server.js](./examples/server.js) file for an example of a more
 
 View [Prerender's original documentation](https://github.com/prerender/prerender) for more details. This Readme will contain only differences from the original documentation.
 
+# Usage in Docker
+
+This project can be used in Docker, but it should be noted:
+
+Chromium and related projects rely heavily on shared memory to operate! Docker's default /dev/shm allocation is only 64MB, which may lead to core dumps and crashes if your page is hard to render or you get multiple requests.
+
+To give Prerender more shared memory, look at the `--shm-size` flag, which I would recommend setting to at least `256m`.
+
+Docker Swarm does not have support for granular shm size like this. To work around this, you must bind-mount `/dev/shm` into the container to give it full access to your shared memory.
+
 ## Plugins
 
 All plugins are now under the `plugins` directory. When requiring in a particular plugin, you can do that like so:
