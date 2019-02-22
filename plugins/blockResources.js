@@ -33,7 +33,7 @@ const defaultOptions = {
 		".pdf",
 		".jpg",
 		".jpeg",
-		".ico"
+		".ico",
 	],
 	appendBlockedResources: []
 }
@@ -44,30 +44,37 @@ module.exports = (options = {}) => {
 
 	return {
 		tabCreated: (req, res, next) => {
-			req.prerender.tab.Network.setRequestInterception({
-				patterns: [{urlPattern: '*'}]
-			}).then(() => {
-				next();
-			});
-
-			req.prerender.tab.Network.requestIntercepted(({interceptionId, request}) => {
-
-				let shouldBlock = false;
-				blockedResources.forEach((substring) => {
-					if (request.url.indexOf(substring) >= 0) {
-						shouldBlock = true;
-					}
-				});
-
-				let interceptOptions = {interceptionId};
-
-				if (shouldBlock) {
-					interceptOptions.errorReason = 'Aborted';
+			// Support different versions of the Chrome API
+			const debuggerProtocol = ({interceptionId, request}) => {
+				const continueOptions = {interceptionId}
+				if( blockedResources.some(substring => request.url.includes(substring)) ) {
+					continueOptions.errorReason = 'Aborted'
 				}
+				req.prerender.tab.Network.continueInterceptedRequest(continueOptions)
+			}
 
-				req.prerender.tab.Network.continueInterceptedRequest(interceptOptions);
+			if( 'setRequestInterception' in req.prerender.tab.Network ) {
+				req.prerender.tab.Network.setRequestInterception({ patterns: [{urlPattern: '*'}] })
+					.then(() => next())
+					.catch(e => {
+						console.error('Could not enable request interception:', e)
+						return Promise.reject(e)
+					})
 
-			});
+				req.prerender.tab.Network.requestIntercepted(debuggerProtocol)
+			} else if( 'setRequestInterceptionEnabled' in req.prerender.tab.Network ) {
+				req.prerender.tab.Network.setRequestInterceptionEnabled({enabled: true, patterns: [{urlPattern: '*'}]})
+					.then(() => next())
+					.catch(e => {
+						console.error('Could not enable request interception:', e)
+						return Promise.reject(e)
+					})
+
+				req.prerender.tab.Network.requestIntercepted(debuggerProtocol)
+			} else {
+				console.log('blockResources plugin not able to work-- unfamiliar Chrome API version!')
+				next()
+			}
 		}
 	}
 };
