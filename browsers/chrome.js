@@ -531,7 +531,7 @@ chrome.parseHtmlFromPage = function(tab) {
 				doctype = response.result.description;
 			}
 
-			tab.prerender.content = doctype + tab.prerender.content;
+			// tab.prerender.content = doctype + tab.prerender.content;
 			clearTimeout(parseTimeout);
 			resolve();
 		}).catch((err) => {
