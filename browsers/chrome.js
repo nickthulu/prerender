@@ -21,7 +21,15 @@ chrome.spawn = function(options) {
 			return reject();
 		}
 
-		this.chromeChild = spawn(location, this.options.chromeFlags || ['--headless', '--disable-gpu', '--remote-debugging-port=9222', '--hide-scrollbars']);
+		const defaultChromeFlags = ['--headless', '--disable-gpu', '--remote-debugging-port=9222', '--hide-scrollbars']
+
+		if (this.options.chromeFlags) {
+			util.log('Running with custom Chrome flags: ', this.options.chromeFlags)
+		} else {
+			util.log('Running with default Chrome flags: ', defaultChromeFlags)
+		}
+
+		this.chromeChild = spawn(location, this.options.chromeFlags || defaultChromeFlags);
 
 		resolve();
 	});
